@@ -27,21 +27,47 @@
  * @license MIT
  */
 class AES256Encryption{
-    private $sharedkey = 'BoloBirBoloCiroUnnotomomoshiR';
-    private $method = 'aes-256-cbc';
+    /**
+     * $sharedkey 32 -characters secret password
+     */
+    private static $sharedkey = 'ABCDABCDABCDABCDABCDABCDABCDABCD';
 
-    function encrypt($message){
-        $password = substr(hash('sha256', $this->sharedkey, true), 0, 32);
-        $iv = chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0);
-        $encrypted = base64_encode(openssl_encrypt($message, $this->method, $password, OPENSSL_RAW_DATA, $iv));
-        return $encrypted;
+    /**
+     * $method aes-256-cbc encryption method
+     */
+    private static $method = 'aes-256-cbc';
+    
+    /**
+     * check shared key length. It is required exact 32 chars
+     */
+    private static function checkKey(){
+        if(strlen(self::$sharedkey) != 32) throw new Exception('"sharedkey length is not 32 chars"'); 
     }
 
-    function decrypt($encrypted){
-        $password = substr(hash('sha256', $this->sharedkey, true), 0, 32);
-        $iv = chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0) . chr(0x0);
-        $decrypted = openssl_decrypt(base64_decode($encrypted), $this->method, $password, OPENSSL_RAW_DATA, $iv);
-        return $decrypted;
+    /**
+     * Encrypt message by AES-256-CBC algorithm
+     *
+     * @param string $message Text for encryption
+     *
+     * @return self encrypted message
+     */
+    function encrypt($message){
+        self::checkKey();
+        $iv = substr(self::$sharedkey, 0, 16);
+        return openssl_encrypt($message, self::$method, self::$sharedkey, 0, $iv);
+    }
+
+    /**
+     * Decrypt encrypted message by AES-256-CBC algorithm
+     *
+     * @param string $encryptedMessage Text for encryption
+     *
+     * @return self decrypted message
+     */
+    static function decrypt($encryptedMessage){
+        self::checkKey();
+        $iv = substr(self::$sharedkey, 0, 16);
+        return openssl_decrypt($encryptedMessage, self::$method, self::$sharedkey, 0, $iv);
     }
 }
 ?>
